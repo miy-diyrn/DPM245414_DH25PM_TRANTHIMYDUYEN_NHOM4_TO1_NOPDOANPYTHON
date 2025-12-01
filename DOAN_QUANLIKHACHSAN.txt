@@ -1,0 +1,128 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+import mysql.connector
+
+# KẾT NỐI MYSQL DATABASE QLKS
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="250206",
+    database="QLKS"
+)
+cursor = db.cursor()
+
+
+# HÀM LOAD PHÒNG
+
+def load_phong():
+    for row in tree.get_children():
+        tree.delete(row)
+
+    cursor.execute("SELECT * FROM Phong")
+    for row in cursor.fetchall():
+        tree.insert("", tk.END, values=row)
+
+
+# HÀM THÊM PHÒNG
+S
+def them_phong():
+    try:
+        cursor.execute("\n"
+                       "INSERT INTO Phong (MaPhong, LoaiPhong, GiaPhong, TinhTrang)\n"
+                       "VALUES (%s, %s, %s, %s)\n"
+                       "        ", (maPhong.get(), loaiPhong.get(), giaPhong.get(), tinhTrang.get()))
+
+        db.commit()
+        load_phong()
+        messagebox.showinfo("Thành công", "Đã thêm phòng!")
+
+    except mysql.connector.Error as e:
+        messagebox.showerror("Lỗi", f"Lỗi thêm phòng: {e}")
+
+S
+# HÀM SỬA PHÒNG
+
+def sua_phong():
+    cursor.execute("""
+        UPDATE Phong SET LoaiPhong=%s, GiaPhong=%s, TinhTrang=%s
+        WHERE MaPhong=%s
+    """, (loaiPhong.get(), giaPhong.get(), tinhTrang.get(), maPhong.get()))
+
+    db.commit()
+    load_phong()
+    messagebox.showinfo("Thành công", "Đã sửa thông tin!")
+
+
+# HÀM XÓA PHÒNG
+
+def xoa_phong():
+    cursor.execute("DELETE FROM Phong WHERE MaPhong=%s", (maPhong.get(),))
+    db.commit()
+    load_phong()
+    messagebox.showinfo("Thành công", "Đã xóa phòng!")
+
+
+# GIAO DIỆN TKINTER
+
+root = tk.Tk()
+root.title("QUẢN LÍ KHÁCH SẠN")
+root.geometry("950x650")
+
+tk.Label(root, text="QUẢN LÍ KHÁCH SẠN",
+         font=("Arial", 22, "bold")).pack(pady=10)
+
+frame = tk.Frame(root)
+frame.pack()
+
+
+# BIẾN DỮ LIỆU
+
+maPhong = tk.StringVar()
+loaiPhong = tk.StringVar()
+giaPhong = tk.StringVar()
+tinhTrang = tk.StringVar()
+
+
+# FORM NHẬP
+
+tk.Label(frame, text="Mã Phòng:").grid(row=0, column=0, sticky="w")
+tk.Entry(frame, textvariable=maPhong).grid(row=0, column=1, padx=10, pady=5)
+
+tk.Label(frame, text="Loại Phòng:").grid(row=1, column=0, sticky="w")
+tk.Entry(frame, textvariable=loaiPhong).grid(row=1, column=1, padx=10, pady=5)
+
+tk.Label(frame, text="Giá Phòng:").grid(row=2, column=0, sticky="w")
+tk.Entry(frame, textvariable=giaPhong).grid(row=2, column=1, padx=10, pady=5)
+
+tk.Label(frame, text="Tình trạng:").grid(row=3, column=0, sticky="w")
+cbb_tt = ttk.Combobox(frame, textvariable=tinhTrang,
+                      values=["Trống", "Đã đặt"], width=17)
+cbb_tt.grid(row=3, column=1, padx=10, pady=5)
+
+
+# NÚT CHỨC NĂNG
+
+tk.Button(frame, text="Thêm", width=12, command=them_phong)\
+    .grid(row=4, column=0, pady=15)
+
+tk.Button(frame, text="Sửa", width=12, command=sua_phong)\
+    .grid(row=4, column=1)
+
+tk.Button(frame, text="Xóa", width=12, command=xoa_phong)\
+    .grid(row=4, column=2)
+
+
+# BẢNG DANH SÁCH PHÒNG
+
+columns = ("MaPhong", "LoaiPhong", "GiaPhong", "TinhTrang")
+tree = ttk.Treeview(root, columns=columns, show="headings", height=15)
+
+for col in columns:
+    tree.heading(col, text=col)
+    tree.column(col, width=150)
+
+tree.pack(fill=tk.BOTH, expand=True, pady=20)
+
+load_phong()
+
+root.mainloop()
